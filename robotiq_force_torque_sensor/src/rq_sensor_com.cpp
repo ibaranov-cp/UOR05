@@ -152,16 +152,23 @@ INT_8 rq_sensor_com()
 		return -1;
 	}
 
-	//Loops through the files in the /sys/class/tty/ directory
-	while ((entrydirectory = readdir(dir)) != NULL && device_found == 0)
-	{
-		//Look for a serial device
-		if (strstr(entrydirectory->d_name, "ttyS") || 
-			strstr(entrydirectory->d_name, "ttyUSB"))
-		{
-			device_found = rq_com_identify_device(entrydirectory->d_name);
-		}
-	}
+        //Loops through the files in the /sys/class/tty/ directory
+        // WHY WOULD YOU EVER DO THIS??? NO!!!!
+	//while ((entrydirectory = readdir(dir)) != NULL && device_found == 0)
+	//{
+	//	//Look for a serial device
+	//	if (strstr(entrydirectory->d_name, "ttyS") || 
+	//		strstr(entrydirectory->d_name, "ttyUSB"))
+	//	{
+	//		device_found = rq_com_identify_device(entrydirectory->d_name);
+	//	}
+	//}
+
+
+        // This is also terrible practice, FIX ME!!! No hardcoding!
+        device_found = rq_com_identify_device("ftdi_DAWYTA3D");
+        // I don't have time to fix robotiq's code...
+
 
 	closedir(dir);
 
