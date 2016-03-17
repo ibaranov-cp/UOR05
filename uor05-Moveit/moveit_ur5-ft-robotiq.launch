@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+
+<launch>
+
+<!-- Launch settings for UR5 driver -->
+  <arg name="robot_ip" default="192.168.1.17"/>
+  <arg name="limited" default="false"/>
+  <arg name="min_payload"  default="0.0"/>
+  <arg name="max_payload"  default="5.0"/>
+  <arg name="prefix" default="ur5_arm_" />
+  <arg name="servoj_time" default="0.008" />
+  <arg name="base_frame" default="$(arg prefix)base_link" />
+  <arg name="tool_frame" default="$(arg prefix)tool0_controller" />
+
+  <node name="ur_driver" pkg="ur_modern_driver" type="ur_driver" output="screen">
+    <param name="prefix" type="str" value="$(arg prefix)" />
+    <param name="robot_ip_address" type="str" value="$(arg robot_ip)" />
+    <param name="min_payload" type="double" value="$(arg min_payload)" />
+    <param name="max_payload" type="double" value="$(arg max_payload)" />
+    <param name="max_velocity" type="double" value="10.0" />
+    <param name="servoj_time" type="double" value="$(arg servoj_time)" />
+    <param name="base_frame" type="str" value="$(arg base_frame)"/>
+    <param name="tool_frame" type="str" value="$(arg tool_frame)"/>
+  </node>
+
+  <!-- Load controller settings -->
+  <rosparam file="$(find ur_modern_driver)/config/ur5_controllers.yaml" command="load"/>
+
+  <!-- spawn controller manager -->
+  <node name="ros_control_controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+    output="screen" args="joint_state_controller" />
+
+<!-- URDF update for FT -->
+<node pkg="tf" type="static_transform_publisher" name="FT300_static" args="0.02 0.0 0.0 0.0 1.57 0.0 ur5_arm_ee_link robotiq_force_torque_frame_id 100" />
+
+<!-- URDF update for robotiq gripper--> 
+
+<!-- For Reference, way to launch nodes: -->
+<node name="ft_sensor" pkg="robotiq_force_torque_sensor" type="rq_sensor" respawn="true" output="screen">
+</node>
+
+<node name="robotiq_gripper" pkg="robotiq_s_model_control" type="SModelTcpNode.py" respawn="true" args="192.168.1.19" output="screen">
+</node>
+
+  <arg name="sim" default="false" />
+  <arg name="debug" default="false" />
+
+  <!-- Remap follow_joint_trajectory -->
+  <remap from="arm_controller/follow_joint_trajectory" to="follow_joint_trajectory"/>
+
+  <!-- Launch moveit -->
+  <include file="$(find uor05-Moveit)/launch/move_group.launch">
+    <arg name="debug" default="$(arg debug)" />
+  </include>
+
+
+</launch>
